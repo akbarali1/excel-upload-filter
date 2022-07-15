@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExcelController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,12 +14,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::view('/', 'welcome')->name('welcome');
 
-Route::controller(AuthController::class)->group(function () {
-    Route::post("/excel", "loginForm")->name("login");
-    Route::get("/login", "login")->name("login");
-    Route::get("/logout", "logout")->name("logout");
+Route::controller(ExcelController::class)->prefix('excel')->name('excel')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post("/download", "download")->name("download");
 });

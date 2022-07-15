@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
-
-use App\Http\Controllers\Controller;
+namespace App\Http\Controllers;
 
 /**
  * Created by PhpStorm.
@@ -19,6 +17,11 @@ class ExcelController extends Controller
 {
 
     public function index()
+    {
+        return view('excel.index');
+    }
+
+    public function download()
     {
         return view('excel.index');
     }
