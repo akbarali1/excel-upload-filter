@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('welcome');
 
-Route::controller(ExcelController::class)->prefix('excel')->name('excel')->group(function () {
+Route::controller(ExcelController::class)->prefix('excel')->name('excel.')->group(function () {
     Route::get('/', 'index')->name('index');
-    Route::post("/download", "download")->name("download");
+    Route::get("/download", "download")->name("download");
 });
