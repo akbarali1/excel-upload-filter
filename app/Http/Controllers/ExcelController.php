@@ -46,14 +46,17 @@ class ExcelController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
-        $products = DB::table('products')->limit(100)->get()->transform(function ($item) {
-            return [
-                'id'    => $item->id,
-                'name'  => json_decode($item->name, true)['uz'],
-                'price' => $item->price,
-            ];
-        });
+        $this->excelHeaderGenerate($sheet);
+        $this->excelBodyGenerate($sheet);
 
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($file);
+
+        return $file;
+    }
+
+    public function excelHeaderGenerate($sheet)
+    {
         $ont_table = [
             [
                 'name'  => '№',
@@ -64,87 +67,110 @@ class ExcelController extends Controller
                 'table' => "B",
             ],
             [
-                'name'  => 'Цена',
+                'name'  => 'Код товара',
                 'table' => "C",
             ],
             [
-                'name'  => 'Артикул',
+                'name'  => 'Цена',
                 'table' => "D",
             ],
             [
-                'name'  => 'Количество',
+                'name'  => 'Артикул',
                 'table' => "E",
             ],
             [
-                'name'  => 'Цена в USD',
+                'name'  => 'Количество',
                 'table' => "F",
             ],
             [
-                'name'  => 'Цена по умолчанию',
+                'name'  => 'Цена в USD',
                 'table' => "G",
             ],
             [
-                'name'  => 'Поставщик',
+                'name'  => 'Цена по умолчанию',
                 'table' => "H",
             ],
             [
-                'name'  => 'Цена поставщика',
+                'name'  => 'Поставщик',
                 'table' => "I",
+            ],
+            [
+                'name'  => 'Цена поставщика',
+                'table' => "J",
             ],
         ];
 
         foreach ($ont_table as $key => $value) {
-            $sheet->setCellValue($value['table'].'1', $value['name'])
-                ->getStyle($value['table'].'1')
-                ->getBorders()
+            $sheet->setCellValue($value['table'].'1', $value['name']);
+            $sheet->getStyle($value['table'].'1')->getBorders()
                 ->getOutline()
-                ->setBorderStyle(Border::BORDER_THICK);
+                ->setBorderStyle(Border::BORDER_THICK)
+                ->setColor(new Color('000000'));
+            $sheet->getStyle($value['table'].'1')
+                ->getAlignment()
+                ->setWrapText(true);
         }
-        //        $sheet->getStyle('B2')
-        //            ->getBorders()
-        //            ->getOutline()
-        //            ->setBorderStyle(Border::BORDER_THICK)
-        //            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK);
 
+        return $sheet;
 
-        $validation = $sheet->getCell('B5')->getDataValidation();
-        $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-        $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
-        $validation->setAllowBlank(false);
-        $validation->setShowInputMessage(true);
-        $validation->setShowErrorMessage(true);
-        $validation->setShowDropDown(true);
-        $validation->setErrorTitle('Input error');
-        $validation->setError('Value is not in list.');
-        $validation->setPromptTitle('Pick from list');
-        $validation->setPrompt('Please pick a value from the drop-down list.');
-        $validation->setFormula1('"Item A,Item B,Item C"');
+    }
 
-        //
-        //        $product_list = '';
-        //
-        //        foreach ($products as $product) {
-        //            $product_name = $product['name'];
-        //            $product_list .= '"'.$product_name.'",';
-        //        }
-        //
-        //        $validation->setFormula1($product_list);
+    public function excelBodyGenerate($sheet)
+    {
+        $products = DB::table('products')->whereNull('deleted_at')
+            ->orderBy('sku')
+            ->select('id', 'name')
+            ->get()->transform(function ($item) {
+                $name = json_decode($item->name, true);
 
+                return [
+                    'id'   => $item->id,
+                    'name' => $name['uz'],
+                ];
+            })->toArray();
 
-        $writer = new Xlsx($spreadsheet);
-        $writer->save($file);
+        $i = 1;
+        $g = 0;
+        foreach ($products as $key => $value) {
+            $i++;
+            $g++;
 
-        return $file;
+            $sheet->getStyle('A'.$i.':J'.$i)->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => Border::BORDER_THIN,
+                    ],
+                ],
+            ]);
 
+            $sheet->setCellValue('A'.$i, $g.')')
+                ->setCellValue('B'.$i, $value['name'])
+                ->setCellValue('C'.$i, $value['id'])
+                ->setCellValue('D'.$i, '0')
+                ->setCellValue('E'.$i, '0')
+                ->setCellValue('F'.$i, '0')
+                ->setCellValue('G'.$i, '0')
+                ->setCellValue('H'.$i, '0')
+                ->setCellValue('I'.$i, '0')
+                ->setCellValue('J'.$i, '0');
 
-        //        $spreadsheet = new Spreadsheet();
-        //        $sheet       = $sheet->;
-        //        $sheet->setCellValue('A1', 'Hello World !');
-        //
-        //        $writer = new Xlsx($spreadsheet);
-        //        $writer->save($filename);
-        //
-        //        return $filename;
+        }
+
+        //        $validation = $sheet->getCell('B5')->getDataValidation();
+        //        $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+        //        $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
+        //        $validation->setAllowBlank(false);
+        //        $validation->setShowInputMessage(true);
+        //        $validation->setShowErrorMessage(true);
+        //        $validation->setShowDropDown(true);
+        //        $validation->setErrorTitle('Input error');
+        //        $validation->setError('Value is not in list.');
+        //        $validation->setPromptTitle('Pick from list');
+        //        $validation->setPrompt('Please pick a value from the drop-down list.');
+        //        $validation->setFormula1('"Item A,Item B,Item C"');
+
+        return $sheet;
+
     }
 
 
