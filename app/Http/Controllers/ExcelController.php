@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Color;
 
 /**
  * Created by PhpStorm.
@@ -42,9 +45,8 @@ class ExcelController extends Controller
     {
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
-        $i           = 3;
 
-        $providersList = DB::table('products')->limit(100)->get()->transform(function ($item) {
+        $products = DB::table('products')->limit(100)->get()->transform(function ($item) {
             return [
                 'id'    => $item->id,
                 'name'  => json_decode($item->name, true)['uz'],
@@ -52,24 +54,83 @@ class ExcelController extends Controller
             ];
         });
 
-        foreach ($providersList as $provider) {
-            $sheet->setCellValue('A'.$i, $provider['id']);
-            $sheet->setCellValue('B'.$i, $provider['name']);
-            $i++;
+        $ont_table = [
+            [
+                'name'  => '№',
+                'table' => "A",
+            ],
+            [
+                'name'  => 'Название',
+                'table' => "B",
+            ],
+            [
+                'name'  => 'Цена',
+                'table' => "C",
+            ],
+            [
+                'name'  => 'Артикул',
+                'table' => "D",
+            ],
+            [
+                'name'  => 'Количество',
+                'table' => "E",
+            ],
+            [
+                'name'  => 'Цена в USD',
+                'table' => "F",
+            ],
+            [
+                'name'  => 'Цена по умолчанию',
+                'table' => "G",
+            ],
+            [
+                'name'  => 'Поставщик',
+                'table' => "H",
+            ],
+            [
+                'name'  => 'Цена поставщика',
+                'table' => "I",
+            ],
+        ];
+
+        foreach ($ont_table as $key => $value) {
+            $sheet->setCellValue($value['table'].'1', $value['name'])
+                ->getStyle($value['table'].'1')
+                ->getBorders()
+                ->getOutline()
+                ->setBorderStyle(Border::BORDER_THICK);
         }
-        $sheet->getProtection()->setSheet(true);
-        $nbOfProvider = $sheet->getHighestRow('A');
-        for ($j = 3; $j < $nbOfProvider; $j++) {
-            $dropdownlist = $sheet->getCell('B'.$j)->getDataValidation();
-            $dropdownlist->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST)
-                ->setAllowBlank(true)
-                ->setShowDropDown(true)
-                ->setPrompt('Choose the provider')
-                ->setFormula1('=\'PROVIDERS\'!$B$3:$B$'.$nbOfProvider);
-            $idProvider = $sheet->getCell('C'.$j);
-            /*$idProvider->setValue('=VLOOKUP(\'PROVIDERS\'!$B$3:$B$'.$nbOfProvider.',B');*/
-        }
-        $spreadsheet->getSheet(0);
+        //        $sheet->getStyle('B2')
+        //            ->getBorders()
+        //            ->getOutline()
+        //            ->setBorderStyle(Border::BORDER_THICK)
+        //            ->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK);
+
+
+        $validation = $sheet->getCell('B5')->getDataValidation();
+        $validation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+        $validation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
+        $validation->setAllowBlank(false);
+        $validation->setShowInputMessage(true);
+        $validation->setShowErrorMessage(true);
+        $validation->setShowDropDown(true);
+        $validation->setErrorTitle('Input error');
+        $validation->setError('Value is not in list.');
+        $validation->setPromptTitle('Pick from list');
+        $validation->setPrompt('Please pick a value from the drop-down list.');
+        $validation->setFormula1('"Item A,Item B,Item C"');
+
+        //
+        //        $product_list = '';
+        //
+        //        foreach ($products as $product) {
+        //            $product_name = $product['name'];
+        //            $product_list .= '"'.$product_name.'",';
+        //        }
+        //
+        //        $validation->setFormula1($product_list);
+
+
         $writer = new Xlsx($spreadsheet);
         $writer->save($file);
 
@@ -77,7 +138,7 @@ class ExcelController extends Controller
 
 
         //        $spreadsheet = new Spreadsheet();
-        //        $sheet       = $spreadsheet->getActiveSheet();
+        //        $sheet       = $sheet->;
         //        $sheet->setCellValue('A1', 'Hello World !');
         //
         //        $writer = new Xlsx($spreadsheet);

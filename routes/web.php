@@ -20,3 +20,8 @@ Route::controller(ExcelController::class)->prefix('excel')->name('excel.')->grou
     Route::get('/', 'index')->name('index');
     Route::get("/download", "download")->name("download");
 });
+
+Route::controller(\App\Http\Controllers\ExcelProductController::class)->prefix('excel_prod')->name('excel_prod.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get("/download", "download")->name("download");
+});
