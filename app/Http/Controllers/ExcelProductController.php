@@ -97,15 +97,6 @@ class ExcelProductController extends Controller
 
         return $file;
 
-
-        //        $spreadsheet = new Spreadsheet();
-        //        $sheet       = $spreadsheet->getActiveSheet();
-        //        $sheet->setCellValue('A1', 'Hello World !');
-        //
-        //        $writer = new Xlsx($spreadsheet);
-        //        $writer->save($filename);
-        //
-        //        return $filename;
     }
 
 

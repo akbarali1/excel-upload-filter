@@ -400,6 +400,6 @@
     </style>
 </head>
 <body class="antialiased">
-<a href="{{ route('excel.download') }}">Yuklab olish</a>
+<a href="{{ url()->full() }}/download">Yuklab olish</a>
 </body>
 </html>
