@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
@@ -39,6 +40,30 @@ class ExcelController extends Controller
         unlink($file);
 
         return $response;
+
+    }
+
+    public function upload(Request $request)
+    {
+        $file = $request->file('file');
+
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($file);
+
+        $sheet = $spreadsheet->getSheet(0)->toArray();
+
+        $one = $sheet[0];
+        unset($sheet[0]);
+
+        $array = [];
+        foreach ($sheet as $row) {
+            if (!is_null($row[1])) {
+                $array[] = array_combine($one, $row);
+            }
+        }
+
+        return response()->json($array, 200, [], JSON_UNESCAPED_UNICODE);
 
     }
 
@@ -263,31 +288,37 @@ class ExcelController extends Controller
                 'column' => 'G',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'H',
             ],
             [
                 'column' => 'I',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'J',
             ],
             [
                 'column' => 'L',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'M',
             ],
             [
                 'column' => 'O',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'P',
             ],
             [
                 'column' => 'R',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'S',
             ],
             [
                 'column' => 'U',
                 'row'    => '2',
                 'end'    => '101',
+                'other'  => 'V',
             ],
         ];
     }
@@ -300,8 +331,7 @@ class ExcelController extends Controller
         $supplier_count = DB::table('suppliers')->whereNull('deleted_at')->count('id') + 1;
         for ($i = 2; $i < $limit; $i++) {
             $g++;
-            $sheet->getStyle('A'.$i.':R'.$i)->applyFromArray($styleArray);
-
+            $sheet->getStyle('A'.$i.':W'.$i)->applyFromArray($styleArray);
             $sheet->setCellValue('A'.$i, $g.')')->getColumnDimension('A')->setWidth(6);
 
             $validation = $sheet->getCell('B'.$i)->getDataValidation();
@@ -322,12 +352,11 @@ class ExcelController extends Controller
             // D tablitsa Priceni tashlash
             // $sheet->setCellValue('D'.$i, '=IFERROR(VLOOKUP(B'.$i.',product!B2:E'.$product_count.',4,FALSE),0)');
             //G tablitsa Postavchikni tanlang
-            $this->supplierEditAccess($sheet, $supplier_count, 'G', 'H', $i, $styleArray);
-            $this->supplierEditAccess($sheet, $supplier_count, 'I', 'J', $i, $styleArray);
-            $this->supplierEditAccess($sheet, $supplier_count, 'K', 'L', $i, $styleArray);
-            $this->supplierEditAccess($sheet, $supplier_count, 'M', 'N', $i, $styleArray);
-            $this->supplierEditAccess($sheet, $supplier_count, 'O', 'P', $i, $styleArray);
-            $this->supplierEditAccess($sheet, $supplier_count, 'Q', 'R', $i, $styleArray);
+            foreach ($this->editAccessColumn() as $value) {
+                if (isset($value['other'])) {
+                    $this->supplierEditAccess($sheet, $supplier_count, $value['column'], $value['other'], $i, $styleArray);
+                }
+            }
 
         }
     }

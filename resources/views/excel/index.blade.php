@@ -401,5 +401,11 @@
 </head>
 <body class="antialiased">
 <a href="{{ url()->full() }}/download">Yuklab olish</a>
+<br><br>
+<form action="{{ route('excel.upload') }}" method="post" enctype="multipart/form-data">
+    @csrf
+    <input type="file" name="file" id="file">
+    <input type="submit" value="Yuklash">
+</form>
 </body>
 </html>

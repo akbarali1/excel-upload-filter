@@ -19,6 +19,7 @@ Route::view('/', 'welcome')->name('welcome');
 Route::controller(ExcelController::class)->prefix('excel')->name('excel.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::get("/download", "download")->name("download");
+    Route::post("/upload", "upload")->name("upload");
 });
 
 Route::controller(\App\Http\Controllers\ExcelProductController::class)->prefix('excel_prod')->name('excel_prod.')->group(function () {
