@@ -26,6 +26,9 @@ Route::controller(\App\Http\Controllers\ExcelProductController::class)->prefix('
     Route::get('/', 'index')->name('index');
     Route::get("/download", "download")->name("download");
 });
+Route::controller(\App\Http\Controllers\TestController::class)->prefix('test')->name('test.')->group(function () {
+    Route::get('/', 'index')->name('index');
+});
 
 Route::controller(\App\Http\Controllers\ExcelAutoFilterController::class)->prefix('excel-filter')->name('excel_filter.')->group(function () {
     Route::get('/', 'index')->name('index');

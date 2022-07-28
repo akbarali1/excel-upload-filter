@@ -248,7 +248,7 @@ class ExcelController extends Controller
         $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
         //        $sheetDatabase = $spreadsheet->getActiveSheet(1);
-        $this->workSheeetGenerate($sheet, $styleArray);
+        $this->workSheetGenerate($sheet, $styleArray);
 
         //Hamma tablitsalarni himoyalaymiz
         $sheet->getProtection()->setSheet(true);
@@ -323,7 +323,7 @@ class ExcelController extends Controller
         ];
     }
 
-    private function workSheeetGenerate($sheet, $styleArray)
+    private function workSheetGenerate($sheet, $styleArray): void
     {
         $limit          = 102;
         $g              = 0;
