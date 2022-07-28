@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 
+use App\Models\Product_status;
+
 /**
  * Created by PhpStorm.
  * Filename: TestController.php
@@ -44,6 +46,23 @@ class TestController extends Controller
         echo print_r($zone2);
         echo '</pre>';
 
+    }
+
+    public function dasilva()
+    {
+
+        $list_of_products_status = Product_status::query()->distinct()->where('sku', 'XOX44JUR8AA')->latest('serial_number')->groupBy('serial_number')->get()->pluck('serial_number');
+        dd($list_of_products_status);
+
+        $list_unique_serials = $list_of_products_status->pluck('serial_number')->toArray();
+
+        $products = collect([]);
+        foreach ($list_unique_serials as $serial) {
+            // get the latest status of each product
+            $product    = Product_status::query()->where('serial_number', $serial)
+                ->latest()->first();
+            $products[] = $product;
+        }
     }
 
 
